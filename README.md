@@ -88,8 +88,6 @@ println!("{map}");
 //     {"foo": {"bar": false, "baz": true}}
 ```
 
-programmatically
-
 ### Validation with human-readable errors
 ```rust
     use plugx_input::Input;
