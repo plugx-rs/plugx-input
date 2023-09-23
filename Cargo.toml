@@ -1,0 +1,31 @@
+[package]
+name = "plugx-input"
+version = "0.0.1"
+edition = "2021"
+description = "simple and flexible data-structure with diff, merge, and validation."
+license = "BSD-3-Clause"
+readme = "README.md"
+homepage = "https://crates.io/crates/plugx-input"
+documentation = "https://docs.rs/plugx-input"
+repository = "https://github.com/plugx-rs/plugx-input"
+categories = ["ds", "data-structure"]
+keywords = ["serde", "ds", "data-structure"]
+include = ["src/**/*.rs", "Cargo.toml", "LICENSE", "README.md", "CONTRIBUTING.md"]
+
+[dependencies]
+cfg-if = "1.0.0"
+thiserror = "1.0.40"
+anyhow = "1.0.72"
+serde = {version = "1.0.164", features = ["derive"]}
+log = {version = "0.4.19", optional = true}
+tracing = {version = "0.1.37", optional = true}
+
+[features]
+default = []
+logging = ["dep:log"]
+tracing = ["dep:tracing"]
+
+[dev-dependencies]
+tracing-subscriber = {version = "0.3.17", features = ["json"]}
+env_logger = "0.10.0"
+serde_json = "1.0"
