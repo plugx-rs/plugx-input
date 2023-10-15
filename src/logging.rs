@@ -1,3 +1,5 @@
+
+#[doc(hidden)]
 #[macro_export]
 macro_rules! is_debug_level_enabled {
     () => {{
@@ -13,6 +15,7 @@ macro_rules! is_debug_level_enabled {
     }};
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! is_trace_level_enabled {
     () => {{
