@@ -1,4 +1,4 @@
-use crate::definition::*;
+use crate::validation::definition::*;
 use crate::Input;
 use std::ops::Range;
 

@@ -1,10 +1,13 @@
-use crate::definition::{InputDefinition, InputDefinitionType};
 use crate::position::InputPosition;
+use crate::validation::definition::{InputDefinition, InputDefinitionType};
 use crate::Input;
 use cfg_if::cfg_if;
 use faccess::PathExt;
 use std::path::PathBuf;
 use thiserror::Error;
+
+pub mod definition;
+mod definition_from_impls;
 
 macro_rules! trace_update {
     ($position:expr, $old:expr, $new:expr) => {

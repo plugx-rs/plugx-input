@@ -92,7 +92,7 @@ println!("{map}");
 ```rust
     use plugx_input::Input;
     use plugx_input::validation::validate;
-    use plugx_input::definition::{InputDefinition, InputDefinitionType};
+    use plugx_input::validation::definition::{InputDefinition, InputDefinitionType};
 
     let rules_json = r#"
         {
