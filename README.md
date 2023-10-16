@@ -144,6 +144,7 @@ println!("{map}");
 
 ## Cargo features
 * **default**: Nothing!  
+* **validation**: Enables validation of `Input`.  
 * **logging**: Enables logging via [log](https://docs.rs/log/latest/log/) crate.  
 * **tracing**: Enables logging via [tracing](https://docs.rs/tracing/latest/tracing/) crate.
 
