@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     fmt::{Display, Formatter},
+    path::Path,
 };
 
 use crate::Input;
@@ -132,6 +133,14 @@ pub enum InputDefinitionType {
     Either {
         #[serde(rename = "definitions", default)]
         item_definition_list: Vec<InputDefinitionType>,
+    },
+    Path {
+        file_type: Option<InputDefinitionPathType>,
+        #[serde(default)]
+        error_if_not_found: bool,
+        #[serde(default)]
+        access: Vec<InputDefinitionAccessFlag>,
+        absolute: Option<bool>,
     },
 }
 
@@ -602,6 +611,117 @@ impl InputDefinitionType {
     }
 }
 
+impl InputDefinitionType {
+    pub fn path() -> Self {
+        Self::Path {
+            file_type: Default::default(),
+            error_if_not_found: Default::default(),
+            access: Default::default(),
+            absolute: Default::default(),
+        }
+    }
+
+    pub fn is_path(&self) -> bool {
+        matches!(self, Self::Path { .. })
+    }
+
+    pub fn path_type(&self) -> Option<&InputDefinitionPathType> {
+        assert!(self.is_path(), "definition should be `path`");
+        if let Self::Path { file_type, .. } = self {
+            file_type.as_ref()
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn path_type_mut(&mut self) -> &mut Option<InputDefinitionPathType> {
+        assert!(self.is_path(), "definition should be `path`");
+        if let Self::Path { file_type, .. } = self {
+            file_type
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn path_error_if_not_found(&self) -> bool {
+        assert!(self.is_path(), "definition should be `path`");
+        if let Self::Path {
+            error_if_not_found, ..
+        } = self
+        {
+            *error_if_not_found
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn path_error_if_not_found_mut(&mut self) -> &mut bool {
+        assert!(self.is_path(), "definition should be `path`");
+        if let Self::Path {
+            error_if_not_found, ..
+        } = self
+        {
+            error_if_not_found
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn path_access(&self) -> &Vec<InputDefinitionAccessFlag> {
+        assert!(self.is_path(), "definition should be `path`");
+        if let Self::Path { access, .. } = self {
+            access
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn path_access_mut(&mut self) -> &mut Vec<InputDefinitionAccessFlag> {
+        assert!(self.is_path(), "definition should be `path`");
+        if let Self::Path { access, .. } = self {
+            access
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn path_absolute(&self) -> Option<&bool> {
+        assert!(self.is_path(), "definition should be `path`");
+        if let Self::Path { absolute, .. } = self {
+            absolute.as_ref()
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn path_absolute_mut(&mut self) -> &mut Option<bool> {
+        assert!(self.is_path(), "definition should be `path`");
+        if let Self::Path { absolute, .. } = self {
+            absolute
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn set_path_error_if_not_found(&mut self, flag: bool) {
+        *self.path_error_if_not_found_mut() = flag;
+    }
+
+    pub fn with_path_error_if_not_found<T: AsRef<Path>>(mut self, flag: bool) -> Self {
+        self.set_path_error_if_not_found(flag);
+        self
+    }
+
+    pub fn add_path_access(&mut self, access: InputDefinitionAccessFlag) {
+        self.path_access_mut().push(access);
+    }
+
+    pub fn with_path_access(mut self, access: InputDefinitionAccessFlag) -> Self {
+        self.add_path_access(access);
+        self
+    }
+}
+
 impl Display for InputDefinitionType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -692,6 +812,71 @@ impl Display for InputDefinitionType {
                 )
                 .as_str(),
             ),
+            Self::Path {
+                file_type,
+                absolute,
+                error_if_not_found,
+                access,
+            } => {
+                let file_type = if let Some(file_type) = file_type {
+                    if file_type.is_file() {
+                        "file"
+                    } else if file_type.is_directory() {
+                        "directory"
+                    } else if file_type.is_symlink() {
+                        "symlink"
+                    } else {
+                        unreachable!()
+                    }
+                } else {
+                    "path"
+                }
+                .to_string();
+                let access = if access.is_empty() {
+                    String::new()
+                } else {
+                    let mut read = if access.contains(&InputDefinitionAccessFlag::Read) {
+                        " with read".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let write = if access.contains(&InputDefinitionAccessFlag::Write) {
+                        if read.is_empty() {
+                            " with write access"
+                        } else {
+                            " and write access"
+                        }
+                        .to_string()
+                    } else {
+                        String::new()
+                    };
+                    if write.is_empty() {
+                        read.push_str(" access")
+                    }
+                    format!("{read}{write}")
+                };
+                let absolute = if let Some(absolute) = absolute {
+                    if *absolute {
+                        " that should be absolute path"
+                    } else {
+                        " that should be relative path"
+                    }
+                    .to_string()
+                } else {
+                    String::new()
+                };
+                let error_if_not_found = if *error_if_not_found {
+                    if absolute.is_empty() {
+                        " that should exists"
+                    } else {
+                        " and should exists"
+                    }
+                    .to_string()
+                } else {
+                    String::new()
+                };
+                f.write_str(format!("{file_type}{access}{absolute}{error_if_not_found}").as_str())
+            }
         }
     }
 }
@@ -1176,6 +1361,70 @@ impl InputDefinitionRangeFloat {
             }
             Self::MinMax { maybe_max, .. } => maybe_max,
         }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum InputDefinitionAccessFlag {
+    #[serde(alias = "r")]
+    Read,
+    #[serde(alias = "w")]
+    Write,
+}
+
+impl InputDefinitionAccessFlag {
+    pub fn read() -> Self {
+        Self::Read
+    }
+
+    pub fn write() -> Self {
+        Self::Write
+    }
+
+    pub fn is_read_flag(&self) -> bool {
+        matches!(self, Self::Read)
+    }
+
+    pub fn is_write_flag(&self) -> bool {
+        matches!(self, Self::Write)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum InputDefinitionPathType {
+    #[serde(alias = "f")]
+    File,
+    #[serde(alias = "d")]
+    Directory,
+    #[serde(alias = "s")]
+    Symlink,
+}
+
+impl InputDefinitionPathType {
+    pub fn file() -> Self {
+        Self::File
+    }
+
+    pub fn directory() -> Self {
+        Self::Directory
+    }
+
+    pub fn symlink() -> Self {
+        Self::Symlink
+    }
+
+    pub fn is_file(&self) -> bool {
+        matches!(self, Self::File)
+    }
+
+    pub fn is_directory(&self) -> bool {
+        matches!(self, Self::Directory)
+    }
+
+    pub fn is_symlink(&self) -> bool {
+        matches!(self, Self::Symlink)
     }
 }
 

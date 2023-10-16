@@ -2,6 +2,8 @@ use crate::definition::{InputDefinition, InputDefinitionType};
 use crate::position::InputPosition;
 use crate::Input;
 use cfg_if::cfg_if;
+use faccess::PathExt;
+use std::path::PathBuf;
 use thiserror::Error;
 
 macro_rules! trace_update {
@@ -45,6 +47,13 @@ pub enum InputValidateError {
         position: InputPosition,
         definition_type: InputDefinitionType,
     },
+    #[error("{position} {description} (expected {definition_type} and got {input})")]
+    BadValue {
+        description: String,
+        position: InputPosition,
+        definition_type: InputDefinitionType,
+        input: Input,
+    },
 }
 
 pub fn validate(
@@ -73,6 +82,8 @@ pub fn validate(
         validate_enum(input, definition, maybe_position)
     } else if definition_type.is_either() {
         validate_either(input, definition, maybe_position)
+    } else if definition_type.is_path() {
+        validate_path(input, definition, maybe_position)
     } else {
         unreachable!("{definition_type}!!!")
     }
@@ -504,11 +515,101 @@ pub fn validate_either(
     })
 }
 
+pub fn validate_path(
+    input: &mut Input,
+    definition: &InputDefinition,
+    maybe_position: Option<InputPosition>,
+) -> Result<(), InputValidateError> {
+    let definition_type = definition.definition_type();
+    if !definition_type.is_path() {
+        return Err(InputValidateError::Definition {
+            position: maybe_position.unwrap_or_default(),
+            definition_type: definition_type.clone(),
+            input: input.clone(),
+        });
+    }
+    if !input.is_str() {
+        return Err(InputValidateError::Type {
+            position: maybe_position.unwrap_or_default(),
+            expected_type: Input::map_type_name(),
+            input_type: input.type_name(),
+        });
+    }
+    let path = PathBuf::from(input.str_ref().unwrap());
+    let maybe_absolute = definition_type.path_absolute();
+    if let Some(absolute) = maybe_absolute {
+        if *absolute && !path.is_absolute() {
+            return Err(InputValidateError::BadValue {
+                description: "relative path".to_string(),
+                position: maybe_position.unwrap_or_default(),
+                definition_type: definition_type.clone(),
+                input: input.clone(),
+            });
+        }
+    }
+    let error_if_not_found = definition_type.path_error_if_not_found();
+    if error_if_not_found && !path.exists() {
+        return Err(InputValidateError::BadValue {
+            description: "path not found".to_string(),
+            position: maybe_position.unwrap_or_default(),
+            definition_type: definition_type.clone(),
+            input: input.clone(),
+        });
+    }
+    let access = definition_type.path_access();
+    if !access.is_empty() && path.exists() {
+        access.iter().try_for_each(|access_flag| {
+            if access_flag.is_read_flag() && !path.readable() {
+                Err(InputValidateError::BadValue {
+                    description: "No read permission".to_string(),
+                    position: maybe_position.clone().unwrap_or_default(),
+                    definition_type: definition_type.clone(),
+                    input: input.clone(),
+                })
+            } else if access_flag.is_write_flag() && !path.writable() {
+                Err(InputValidateError::BadValue {
+                    description: "No write permission".to_string(),
+                    position: maybe_position.clone().unwrap_or_default(),
+                    definition_type: definition_type.clone(),
+                    input: input.clone(),
+                })
+            } else {
+                Ok(())
+            }
+        })?;
+    }
+    if definition_type.path_type().is_some() && path.exists() {
+        let definition_file_type = definition_type.path_type().unwrap();
+        let file_type = path
+            .metadata()
+            .map_err(|error| InputValidateError::BadValue {
+                description: format!("Could not get path metadata: {error}"),
+                position: maybe_position.clone().unwrap_or_default(),
+                definition_type: definition_type.clone(),
+                input: input.clone(),
+            })?
+            .file_type();
+        if (definition_file_type.is_file() && !file_type.is_file())
+            || (definition_file_type.is_directory() && !file_type.is_dir())
+            || (definition_file_type.is_symlink() && !file_type.is_symlink())
+        {
+            return Err(InputValidateError::BadValue {
+                description: "improper file type".to_string(),
+                position: maybe_position.unwrap_or_default(),
+                definition_type: definition_type.clone(),
+                input: input.clone(),
+            });
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::logging::enable_logging;
-    use std::collections::HashMap;
+    use std::{collections::HashMap, fs, fs::OpenOptions};
+    use tempdir::TempDir;
 
     #[test]
     fn boolean() {
@@ -745,5 +846,48 @@ mod tests {
         let mut input = Input::from(1);
         assert_eq!(Ok(()), validate_either(&mut input, &definition, None));
         assert_eq!(input.float_ref(), Some(&1.0));
+    }
+
+    #[test]
+    fn path() {
+        enable_logging();
+
+        let tmp_dir = TempDir::new("test-path-validation").unwrap();
+        let tmp_path = tmp_dir.into_path();
+
+        let definition_json = serde_json::json!({"definition": {"type": "path"}});
+        let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
+        let mut input = Input::from(tmp_path.join("foo").to_str().unwrap());
+        assert_eq!(Ok(()), validate_path(&mut input, &definition, None));
+
+        let definition_json =
+            serde_json::json!({"definition": {"type": "path", "error_if_not_found": true}});
+        let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
+        assert!(validate_path(&mut input, &definition, None).is_err());
+        let file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(input.str_ref().unwrap())
+            .unwrap();
+        assert!(validate_path(&mut input, &definition, None).is_ok());
+
+        let mut permissions = file.metadata().unwrap().permissions();
+        permissions.set_readonly(true);
+        file.set_permissions(permissions.clone()).unwrap();
+        let definition_json = serde_json::json!({"definition": {"type": "path", "error_if_not_found": true, "access": ["write"]}});
+        let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
+        assert!(validate_path(&mut input, &definition, None).is_err());
+        permissions.set_readonly(false);
+        file.set_permissions(permissions).unwrap();
+        assert!(validate_path(&mut input, &definition, None).is_ok());
+        fs::remove_file(input.str_ref().unwrap()).unwrap();
+        fs::create_dir(input.str_ref().unwrap()).unwrap();
+        assert!(validate_path(&mut input, &definition, None).is_ok());
+        let definition_json = serde_json::json!({"definition": {"type": "path", "error_if_not_found": true, "access": ["write"], "file_type": "directory"}});
+        let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
+        assert!(validate_path(&mut input, &definition, None).is_ok());
+        let definition_json = serde_json::json!({"definition": {"type": "path", "error_if_not_found": true, "access": ["write"], "file_type": "file"}});
+        let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
+        assert!(validate_path(&mut input, &definition, None).is_err());
     }
 }
