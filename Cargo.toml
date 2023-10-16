@@ -1,6 +1,6 @@
 [package]
 name = "plugx-input"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 description = "simple and flexible data-structure with diff, merge, and validation."
 license = "BSD-3-Clause"
