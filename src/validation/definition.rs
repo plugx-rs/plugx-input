@@ -144,6 +144,17 @@ pub enum InputDefinitionType {
     },
     LogLevel,
     LogLevelFilter,
+    Ip {
+        #[serde(default = "default_true")]
+        v4: bool,
+        #[serde(default = "default_true")]
+        v6: bool,
+    },
+}
+
+#[inline]
+fn default_true() -> bool {
+    true
 }
 
 impl Default for InputDefinitionType {
@@ -744,6 +755,70 @@ impl InputDefinitionType {
     }
 }
 
+impl InputDefinitionType {
+    pub fn ip() -> Self {
+        Self::Ip { v4: true, v6: true }
+    }
+
+    pub fn is_ip(&self) -> bool {
+        matches!(self, Self::Ip { .. })
+    }
+
+    pub fn ip_v4_flag(&self) -> bool {
+        assert!(self.is_ip(), "definition should be `ip`");
+        if let Self::Ip { v4, .. } = self {
+            *v4
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn ip_v4_flag_mut(&mut self) -> &mut bool {
+        assert!(self.is_ip(), "definition should be `ip`");
+        if let Self::Ip { v4, .. } = self {
+            v4
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn ip_v6_flag(&self) -> bool {
+        assert!(self.is_ip(), "definition should be `ip`");
+        if let Self::Ip { v6, .. } = self {
+            *v6
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn ip_v6_flag_mut(&mut self) -> &mut bool {
+        assert!(self.is_ip(), "definition should be `ip`");
+        if let Self::Ip { v6, .. } = self {
+            v6
+        } else {
+            unreachable!()
+        }
+    }
+
+    pub fn set_ip_v4_flag(&mut self, flag: bool) {
+        *self.ip_v4_flag_mut() = flag;
+    }
+
+    pub fn with_ip_v4_flag(mut self, flag: bool) -> Self {
+        self.set_ip_v4_flag(flag);
+        self
+    }
+
+    pub fn set_ip_v6_flag(&mut self, flag: bool) {
+        *self.ip_v6_flag_mut() = flag;
+    }
+
+    pub fn with_ip_v6_flag(mut self, flag: bool) -> Self {
+        self.set_ip_v6_flag(flag);
+        self
+    }
+}
+
 impl Display for InputDefinitionType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -898,13 +973,18 @@ impl Display for InputDefinitionType {
                     String::new()
                 };
                 f.write_str(format!("{file_type}{access}{absolute}{error_if_not_found}").as_str())
-            },
-            Self::LogLevel => {
-                f.write_str("log level name")
-            },
-            Self::LogLevelFilter => {
-                f.write_str("log level filter name")
             }
+            Self::LogLevel => f.write_str("log level name"),
+            Self::LogLevelFilter => f.write_str("log level filter name"),
+            Self::Ip { v4, v6 } => f.write_str(if *v4 && *v6 {
+                "IP address"
+            } else if *v4 {
+                "IPv4 address"
+            } else if *v6 {
+                "Ipv6 address"
+            } else {
+                unreachable!()
+            }),
         }
     }
 }

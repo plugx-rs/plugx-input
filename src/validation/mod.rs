@@ -3,6 +3,7 @@ use crate::validation::definition::{InputDefinition, InputDefinitionType};
 use crate::Input;
 use cfg_if::cfg_if;
 use faccess::PathExt;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::path::PathBuf;
 use std::str::FromStr;
 use thiserror::Error;
@@ -92,6 +93,8 @@ pub fn validate(
         validate_log_level(input, definition, maybe_position)
     } else if definition_type.is_log_level_filter() {
         validate_log_level_filter(input, definition, maybe_position)
+    } else if definition_type.is_ip() {
+        validate_ip(input, definition, maybe_position)
     } else {
         unreachable!("{definition_type}!!!")
     }
@@ -663,8 +666,46 @@ pub fn validate_log_level_filter(
         });
     }
     let log_level = input.str_ref().unwrap().as_str();
-    let _ = log::LevelFilter::from_str(log_level).map_err(|error| InputValidateError::BadValue {
-        description: format!("Could not parse log level filter name: {error}"),
+    let _ =
+        log::LevelFilter::from_str(log_level).map_err(|error| InputValidateError::BadValue {
+            description: format!("Could not parse log level filter name: {error}"),
+            position: maybe_position.unwrap_or_default(),
+            definition_type: definition_type.clone(),
+            input: input.clone(),
+        })?;
+    Ok(())
+}
+
+pub fn validate_ip(
+    input: &mut Input,
+    definition: &InputDefinition,
+    maybe_position: Option<InputPosition>,
+) -> Result<(), InputValidateError> {
+    let definition_type = definition.definition_type();
+    if !definition_type.is_ip() {
+        return Err(InputValidateError::Definition {
+            position: maybe_position.unwrap_or_default(),
+            definition_type: definition_type.clone(),
+            input: input.clone(),
+        });
+    }
+    if !input.is_str() {
+        return Err(InputValidateError::Type {
+            position: maybe_position.unwrap_or_default(),
+            expected_type: Input::map_type_name(),
+            input_type: input.type_name(),
+        });
+    }
+    let ip = input.str_ref().unwrap().as_str();
+    if definition_type.ip_v4_flag() && !definition_type.ip_v6_flag() {
+        Ipv4Addr::from_str(ip).map(|_| ())
+    } else if definition_type.ip_v6_flag() && !definition_type.ip_v4_flag() {
+        Ipv6Addr::from_str(ip).map(|_| ())
+    } else {
+        IpAddr::from_str(ip).map(|_| ())
+    }
+    .map_err(|error| InputValidateError::BadValue {
+        description: format!("Could not parse IP address: {error}"),
         position: maybe_position.unwrap_or_default(),
         definition_type: definition_type.clone(),
         input: input.clone(),
@@ -974,6 +1015,26 @@ mod tests {
         let definition_json = serde_json::json!({"definition": {"type": "log_level_filter"}});
         let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
         let mut input = Input::from("off");
-        assert_eq!(Ok(()), validate_log_level_filter(&mut input, &definition, None));
+        assert_eq!(
+            Ok(()),
+            validate_log_level_filter(&mut input, &definition, None)
+        );
+    }
+
+    #[test]
+    fn ip() {
+        enable_logging();
+        let definition_json = serde_json::json!({"definition": {"type": "ip"}});
+        let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
+        let mut input = Input::from("127.0.0.1");
+        assert_eq!(Ok(()), validate_ip(&mut input, &definition, None));
+        *input.str_mut().unwrap() = "2001:0db8:85a3:0000:0000:8a2e:0370:7334".into();
+        assert_eq!(Ok(()), validate_ip(&mut input, &definition, None));
+        let definition_json = serde_json::json!({"definition": {"type": "ip", "v6": false}});
+        let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
+        assert!(validate_ip(&mut input, &definition, None).is_err());
+        let definition_json = serde_json::json!({"definition": {"type": "ip", "v4": false}});
+        let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
+        assert!(validate_ip(&mut input, &definition, None).is_ok());
     }
 }
