@@ -4,6 +4,7 @@ use crate::Input;
 use cfg_if::cfg_if;
 use faccess::PathExt;
 use std::path::PathBuf;
+use std::str::FromStr;
 use thiserror::Error;
 
 pub mod definition;
@@ -87,6 +88,10 @@ pub fn validate(
         validate_either(input, definition, maybe_position)
     } else if definition_type.is_path() {
         validate_path(input, definition, maybe_position)
+    } else if definition_type.is_log_level() {
+        validate_log_level(input, definition, maybe_position)
+    } else if definition_type.is_log_level_filter() {
+        validate_log_level_filter(input, definition, maybe_position)
     } else {
         unreachable!("{definition_type}!!!")
     }
@@ -607,6 +612,66 @@ pub fn validate_path(
     Ok(())
 }
 
+pub fn validate_log_level(
+    input: &mut Input,
+    definition: &InputDefinition,
+    maybe_position: Option<InputPosition>,
+) -> Result<(), InputValidateError> {
+    let definition_type = definition.definition_type();
+    if !definition_type.is_log_level() {
+        return Err(InputValidateError::Definition {
+            position: maybe_position.unwrap_or_default(),
+            definition_type: definition_type.clone(),
+            input: input.clone(),
+        });
+    }
+    if !input.is_str() {
+        return Err(InputValidateError::Type {
+            position: maybe_position.unwrap_or_default(),
+            expected_type: Input::map_type_name(),
+            input_type: input.type_name(),
+        });
+    }
+    let log_level = input.str_ref().unwrap().as_str();
+    let _ = log::Level::from_str(log_level).map_err(|error| InputValidateError::BadValue {
+        description: format!("Could not parse log level name: {error}"),
+        position: maybe_position.unwrap_or_default(),
+        definition_type: definition_type.clone(),
+        input: input.clone(),
+    })?;
+    Ok(())
+}
+
+pub fn validate_log_level_filter(
+    input: &mut Input,
+    definition: &InputDefinition,
+    maybe_position: Option<InputPosition>,
+) -> Result<(), InputValidateError> {
+    let definition_type = definition.definition_type();
+    if !definition_type.is_log_level_filter() {
+        return Err(InputValidateError::Definition {
+            position: maybe_position.unwrap_or_default(),
+            definition_type: definition_type.clone(),
+            input: input.clone(),
+        });
+    }
+    if !input.is_str() {
+        return Err(InputValidateError::Type {
+            position: maybe_position.unwrap_or_default(),
+            expected_type: Input::map_type_name(),
+            input_type: input.type_name(),
+        });
+    }
+    let log_level = input.str_ref().unwrap().as_str();
+    let _ = log::LevelFilter::from_str(log_level).map_err(|error| InputValidateError::BadValue {
+        description: format!("Could not parse log level filter name: {error}"),
+        position: maybe_position.unwrap_or_default(),
+        definition_type: definition_type.clone(),
+        input: input.clone(),
+    })?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -892,5 +957,23 @@ mod tests {
         let definition_json = serde_json::json!({"definition": {"type": "path", "error_if_not_found": true, "access": ["write"], "file_type": "file"}});
         let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
         assert!(validate_path(&mut input, &definition, None).is_err());
+    }
+
+    #[test]
+    fn log_level() {
+        enable_logging();
+        let definition_json = serde_json::json!({"definition": {"type": "log_level"}});
+        let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
+        let mut input = Input::from("debug");
+        assert_eq!(Ok(()), validate_log_level(&mut input, &definition, None));
+    }
+
+    #[test]
+    fn log_level_filter() {
+        enable_logging();
+        let definition_json = serde_json::json!({"definition": {"type": "log_level_filter"}});
+        let definition: InputDefinition = serde_json::from_value(definition_json).unwrap();
+        let mut input = Input::from("off");
+        assert_eq!(Ok(()), validate_log_level_filter(&mut input, &definition, None));
     }
 }

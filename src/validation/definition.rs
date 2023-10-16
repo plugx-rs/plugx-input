@@ -142,6 +142,8 @@ pub enum InputDefinitionType {
         access: Vec<InputDefinitionAccessFlag>,
         absolute: Option<bool>,
     },
+    LogLevel,
+    LogLevelFilter,
 }
 
 impl Default for InputDefinitionType {
@@ -722,6 +724,26 @@ impl InputDefinitionType {
     }
 }
 
+impl InputDefinitionType {
+    pub fn log_level() -> Self {
+        Self::LogLevel
+    }
+
+    pub fn is_log_level(&self) -> bool {
+        matches!(self, Self::LogLevel)
+    }
+}
+
+impl InputDefinitionType {
+    pub fn log_level_filter() -> Self {
+        Self::LogLevelFilter
+    }
+
+    pub fn is_log_level_filter(&self) -> bool {
+        matches!(self, Self::LogLevelFilter)
+    }
+}
+
 impl Display for InputDefinitionType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -876,6 +898,12 @@ impl Display for InputDefinitionType {
                     String::new()
                 };
                 f.write_str(format!("{file_type}{access}{absolute}{error_if_not_found}").as_str())
+            },
+            Self::LogLevel => {
+                f.write_str("log level name")
+            },
+            Self::LogLevelFilter => {
+                f.write_str("log level filter name")
             }
         }
     }
