@@ -13,6 +13,6 @@ pub mod ext {
 }
 
 mod definition_from_impls;
+mod input;
 mod input_from_impls;
 mod logging;
-mod input;

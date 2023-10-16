@@ -1,4 +1,3 @@
-
 #[doc(hidden)]
 #[macro_export]
 macro_rules! is_debug_level_enabled {
