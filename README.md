@@ -21,7 +21,9 @@ let inner_list = map
 *inner_list.get_mut(0).unwrap() = 3.14.into();
 *inner_list.get_mut(1).unwrap() = true.into();
 *inner_list.get_mut(2).unwrap() = "hello world".into();
-assert_eq!(format!("{map}"), "{\"key\":[3.14, true, \"hello world\"]}".to_string());
+println!("{map}");
+// prints:
+// {"key": [3.14, true, "hello world"]}
 ```
 
 ## Features
