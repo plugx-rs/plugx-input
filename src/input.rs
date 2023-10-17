@@ -259,8 +259,12 @@ impl Display for Input {
             }
             Self::Map(value) => {
                 write!(f, "{{")?;
-                for (key, value) in value {
-                    write!(f, "{key:?}:{value}")?
+                let length = value.len();
+                for (index, (key, value)) in value.iter().enumerate() {
+                    write!(f, "{key:?}: {value}")?;
+                    if index < length - 1 {
+                        write!(f, ", ")?;
+                    }
                 }
                 write!(f, "}}")
             }
