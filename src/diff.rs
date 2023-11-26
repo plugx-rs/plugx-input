@@ -94,7 +94,7 @@ pub fn diff_with_position<F>(
         return;
     }
     if input_1.is_map() && input_2.is_map() {
-        let (old_map, new_map) = (input_1.map_ref().unwrap(), input_2.map_ref().unwrap());
+        let (old_map, new_map) = (input_1.as_map(), input_2.as_map());
         for (key, old_value) in old_map {
             let new_position = position.new_with_key(key);
             if let Some(new_value) = new_map.get(key) {
@@ -124,7 +124,7 @@ pub fn diff_with_position<F>(
             }
         }
     } else if input_1.is_list() && input_2.is_list() {
-        let (old_list, new_list) = (input_1.list_ref().unwrap(), input_2.list_ref().unwrap());
+        let (old_list, new_list) = (input_1.as_list(), input_2.as_list());
         let (mut added_index_list, mut removed_index_list) = (Vec::new(), Vec::new());
         for (old_index, inner_input) in old_list.iter().enumerate() {
             if !new_list.contains(inner_input) {
@@ -180,7 +180,7 @@ pub fn diff_with_position<F>(
         };
         for_each_function(diff);
     } else if input_1.is_int() && input_2.is_int() {
-        let (old_int, new_int) = (*input_1.int_ref().unwrap(), *input_2.int_ref().unwrap());
+        let (old_int, new_int) = (*input_1.as_int(), *input_2.as_int());
         let description = if old_int < new_int {
             format!("increased by {}", new_int - old_int)
         } else {
@@ -195,7 +195,7 @@ pub fn diff_with_position<F>(
         };
         for_each_function(diff);
     } else if input_1.is_float() && input_2.is_float() {
-        let (old_float, new_float) = (*input_1.float_ref().unwrap(), *input_2.float_ref().unwrap());
+        let (old_float, new_float) = (*input_1.as_float(), *input_2.as_float());
         let description = if old_float < new_float {
             format!("increased by {}", new_float - old_float)
         } else {
@@ -263,7 +263,7 @@ mod tests {
         let mut new_input = Input::from(true);
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert!(diff_list.is_empty());
-        *new_input.bool_mut().unwrap() = false;
+        *new_input.bool_mut() = false;
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert!(!diff_list.is_empty());
 
@@ -271,7 +271,7 @@ mod tests {
         let mut new_input = Input::from(100);
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert!(diff_list.is_empty());
-        *new_input.int_mut().unwrap() = -100;
+        *new_input.int_mut() = -100;
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert!(!diff_list.is_empty());
         assert_eq!(
@@ -283,7 +283,7 @@ mod tests {
         let mut new_input = Input::from(-1.5);
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert!(diff_list.is_empty());
-        *new_input.float_mut().unwrap() = 3.0;
+        *new_input.float_mut() = 3.0;
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert!(!diff_list.is_empty());
         assert_eq!(
@@ -295,7 +295,7 @@ mod tests {
         let mut new_input = Input::from("foo");
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert!(diff_list.is_empty());
-        *new_input.str_mut().unwrap() = "bar".to_string();
+        *new_input.str_mut() = "bar".to_string();
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert!(!diff_list.is_empty());
         assert_eq!(diff_list[0].action, InputDiffAction::Updated(None));
@@ -314,28 +314,28 @@ mod tests {
         ]));
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert!(diff_list.is_empty());
-        *new_input.list_mut().unwrap()[0].bool_mut().unwrap() = false;
+        *new_input.list_mut()[0].bool_mut() = false;
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert_eq!(diff_list.len(), 1);
         assert_eq!(
             diff_list[0].position.clone()[0],
             InputPositionType::Index(0)
         );
-        *new_input.list_mut().unwrap()[1].int_mut().unwrap() = 20;
+        *new_input.list_mut()[1].int_mut() = 20;
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert_eq!(diff_list.len(), 2);
         assert_eq!(
             diff_list[1].position.clone()[0],
             InputPositionType::Index(1)
         );
-        *new_input.list_mut().unwrap()[2].float_mut().unwrap() = -0.5;
+        *new_input.list_mut()[2].float_mut() = -0.5;
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert_eq!(diff_list.len(), 3);
         assert_eq!(
             diff_list[2].position.clone()[0],
             InputPositionType::Index(2)
         );
-        *new_input.list_mut().unwrap()[3].str_mut().unwrap() = "bar".to_string();
+        *new_input.list_mut()[3].str_mut() = "bar".to_string();
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert_eq!(diff_list.len(), 4);
         assert_eq!(
@@ -363,15 +363,7 @@ mod tests {
         )]));
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert!(diff_list.is_empty());
-        *new_input
-            .map_mut()
-            .unwrap()
-            .get_mut("foo")
-            .unwrap()
-            .list_mut()
-            .unwrap()[1]
-            .int_mut()
-            .unwrap() = 100;
+        *new_input.map_mut().get_mut("foo").unwrap().list_mut()[1].int_mut() = 100;
         let diff_list = diff_to_list(&old_input, &new_input, false);
         assert!(!diff_list.is_empty());
         assert_eq!(
@@ -393,21 +385,17 @@ mod tests {
         let mut new_input = input.clone();
         let list = new_input
             .map_mut()
-            .unwrap()
             .get_mut("foo")
             .unwrap()
             .map_mut()
-            .unwrap()
             .get_mut("bar")
             .unwrap()
             .map_mut()
-            .unwrap()
             .get_mut("baz")
             .unwrap()
-            .list_mut()
-            .unwrap();
-        *list[0].int_mut().unwrap() = 10;
-        *list[1].float_mut().unwrap() = -1.5;
+            .list_mut();
+        *list[0].int_mut() = 10;
+        *list[1].float_mut() = -1.5;
         list[2] = Input::from("new string");
         list.remove(3);
         info(format!("Original data: {}", json.to_string()));

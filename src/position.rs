@@ -55,17 +55,13 @@ impl Default for InputPosition {
 
 impl Display for InputPosition {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.write_str(
-            if self.inner.len() == 1 {
-                self.inner[0].to_string()
-            } else {
-                self.inner
-                    .iter()
-                    .map(|position_type| format!("[{position_type}]"))
-                    .collect::<String>()
-            }
-            .as_str(),
-        )
+        if self.inner.len() == 1 {
+            f.write_str(self.inner[0].to_string().as_str())
+        } else {
+            self.inner
+                .iter()
+                .try_for_each(|position_type| f.write_str(format!("[{position_type}]").as_str()))
+        }
     }
 }
 
