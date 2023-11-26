@@ -105,8 +105,8 @@ fn merge_map(
         *input = to_be_merged_input.clone();
         return;
     }
-    let map = input.map_mut().unwrap();
-    let to_be_merged_map = to_be_merged_input.map_ref().unwrap();
+    let map = input.map_mut();
+    let to_be_merged_map = to_be_merged_input.as_map();
     for (key, inner_to_be_merged_input) in to_be_merged_map {
         if let Some(inner_input) = map.get_mut(key) {
             merge_with_positions(
@@ -139,14 +139,13 @@ fn merge_list(
         return;
     }
     let mut _input_clone = input.clone();
-    let list = input.list_mut().unwrap();
-    let to_be_merged_list = to_be_merged_input.list_ref().unwrap();
+    let list = input.list_mut();
+    let to_be_merged_list = to_be_merged_input.as_list();
     for (_index, inner_to_be_merged_input) in to_be_merged_list.iter().enumerate() {
         if !list.contains(inner_to_be_merged_input) {
             if is_trace_level_enabled!() {
                 _input_clone
                     .list_mut()
-                    .unwrap()
                     .push(inner_to_be_merged_input.clone());
                 trace_merge!(
                     _to_be_merged_input_position.new_with_index(_index),

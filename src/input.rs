@@ -35,27 +35,27 @@ impl Input {
         matches!(self, Self::Bool(_))
     }
 
-    pub fn bool_ref(&self) -> Option<&bool> {
+    pub fn as_bool(&self) -> &bool {
         if let Self::Bool(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a boolean. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
         }
     }
 
-    pub fn into_bool(self) -> Option<bool> {
+    pub fn into_bool(self) -> bool {
         if let Self::Bool(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a boolean. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
         }
     }
 
-    pub fn bool_mut(&mut self) -> Option<&mut bool> {
+    pub fn bool_mut(&mut self) -> &mut bool {
         if let Self::Bool(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a boolean. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
         }
     }
 
@@ -63,27 +63,27 @@ impl Input {
         matches!(self, Self::Int(_))
     }
 
-    pub fn int_ref(&self) -> Option<&isize> {
+    pub fn as_int(&self) -> &isize {
         if let Self::Int(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a integer. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
         }
     }
 
-    pub fn into_int(self) -> Option<isize> {
+    pub fn into_int(self) -> isize {
         if let Self::Int(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a integer. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
         }
     }
 
-    pub fn int_mut(&mut self) -> Option<&mut isize> {
+    pub fn int_mut(&mut self) -> &mut isize {
         if let Self::Int(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a integer. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
         }
     }
 
@@ -91,27 +91,27 @@ impl Input {
         matches!(self, Self::Float(_))
     }
 
-    pub fn float_ref(&self) -> Option<&f64> {
+    pub fn as_float(&self) -> &f64 {
         if let Self::Float(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a float. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
         }
     }
 
-    pub fn into_float(self) -> Option<f64> {
+    pub fn into_float(self) -> f64 {
         if let Self::Float(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a float. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
         }
     }
 
-    pub fn float_mut(&mut self) -> Option<&mut f64> {
+    pub fn float_mut(&mut self) -> &mut f64 {
         if let Self::Float(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a integer. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
         }
     }
 
@@ -119,27 +119,27 @@ impl Input {
         matches!(self, Self::Str(_))
     }
 
-    pub fn str_ref(&self) -> Option<&String> {
+    pub fn as_str(&self) -> &String {
         if let Self::Str(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a string. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
         }
     }
 
-    pub fn into_str(self) -> Option<String> {
+    pub fn into_str(self) -> String {
         if let Self::Str(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a string. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
         }
     }
 
-    pub fn str_mut(&mut self) -> Option<&mut String> {
+    pub fn str_mut(&mut self) -> &mut String {
         if let Self::Str(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a string. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
         }
     }
 
@@ -147,27 +147,27 @@ impl Input {
         matches!(self, Self::List(_))
     }
 
-    pub fn list_ref(&self) -> Option<&Vec<Input>> {
+    pub fn as_list(&self) -> &Vec<Input> {
         if let Self::List(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a list. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
         }
     }
 
-    pub fn into_list(self) -> Option<Vec<Input>> {
+    pub fn into_list(self) -> Vec<Input> {
         if let Self::List(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a list. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
         }
     }
 
-    pub fn list_mut(&mut self) -> Option<&mut Vec<Input>> {
+    pub fn list_mut(&mut self) -> &mut Vec<Input> {
         if let Self::List(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a list. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
         }
     }
 
@@ -175,27 +175,27 @@ impl Input {
         matches!(self, Self::Map(_))
     }
 
-    pub fn map_ref(&self) -> Option<&HashMap<String, Input>> {
+    pub fn as_map(&self) -> &HashMap<String, Input> {
         if let Self::Map(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a map. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
         }
     }
 
-    pub fn into_map(self) -> Option<HashMap<String, Input>> {
+    pub fn into_map(self) -> HashMap<String, Input> {
         if let Self::Map(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a map. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
         }
     }
 
-    pub fn map_mut(&mut self) -> Option<&mut HashMap<String, Input>> {
+    pub fn map_mut(&mut self) -> &mut HashMap<String, Input> {
         if let Self::Map(value) = self {
-            Some(value)
+            value
         } else {
-            None
+            panic!("Expected Input to be a map. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
         }
     }
 
