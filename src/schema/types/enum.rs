@@ -63,30 +63,27 @@ impl Display for InputSchemaTypeEnum {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let length = self.value_list.len();
         f.write_str(
-            format!(
-                "{}",
-                if length == 1 {
-                    format!("`{}`", self.value_list[0])
-                } else if length == 0 {
-                    "misconfigured `Enum` type which contains nothing".into()
-                } else if length == 2 {
-                    format!("`{}` or `{}`", self.value_list[0], self.value_list[1])
-                } else {
-                    let mut text = String::new();
-                    self.value_list
-                        .iter()
-                        .enumerate()
-                        .for_each(|(index, input)| {
-                            text += if index + 1 == length {
-                                format!("or `{input}`")
-                            } else {
-                                format!("`{input}`, ")
-                            }
-                            .as_str()
-                        });
-                    text
-                }
-            )
+            if length == 1 {
+                format!("`{}`", self.value_list[0])
+            } else if length == 0 {
+                "misconfigured `Enum` type which contains nothing".into()
+            } else if length == 2 {
+                format!("`{}` or `{}`", self.value_list[0], self.value_list[1])
+            } else {
+                let mut text = String::new();
+                self.value_list
+                    .iter()
+                    .enumerate()
+                    .for_each(|(index, input)| {
+                        text += if index + 1 == length {
+                            format!("or `{input}`")
+                        } else {
+                            format!("`{input}`, ")
+                        }
+                        .as_str()
+                    });
+                text
+            }
             .as_str(),
         )
     }

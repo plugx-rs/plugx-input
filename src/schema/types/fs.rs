@@ -117,12 +117,14 @@ impl InputSchemaTypeFs {
                 return Err(InputSchemaError::Invalid {
                     description: "relative path".to_string(),
                     position: maybe_position.unwrap_or_default(),
+                    input: input.clone(),
                 });
             }
             if !absolute && path.is_absolute() {
                 return Err(InputSchemaError::Invalid {
                     description: "absolute path".to_string(),
                     position: maybe_position.unwrap_or_default(),
+                    input: input.clone(),
                 });
             }
         }
@@ -135,36 +137,42 @@ impl InputSchemaTypeFs {
         //         input: input.clone(),
         //     });
         // }
-        if let Some(access) = self.maybe_access {
-            if access.is_read() && !path.readable() {
-                return Err(InputSchemaError::Invalid {
-                    description: "No read permission".to_string(),
-                    position: maybe_position.clone().unwrap_or_default(),
-                });
-            };
-            if access.is_write() && !path.writable() {
-                return Err(InputSchemaError::Invalid {
-                    description: "No write permission".to_string(),
-                    position: maybe_position.clone().unwrap_or_default(),
-                });
-            };
-        }
-        if self.maybe_path_type.is_some() && path.exists() {
-            let path_type = self.maybe_path_type.unwrap();
-            let file_type = path
-                .metadata()
-                .map_err(|error| InputSchemaError::Invalid {
-                    description: format!("Could not get path metadata: {error}"),
-                    position: maybe_position.clone().unwrap_or_default(),
-                })?
-                .file_type();
-            if (path_type.is_file() && !file_type.is_file())
-                || (path_type.is_directory() && !file_type.is_dir())
-            {
-                return Err(InputSchemaError::Invalid {
-                    description: "improper file type".to_string(),
-                    position: maybe_position.unwrap_or_default(),
-                });
+        if path.exists() {
+            if let Some(access) = self.maybe_access {
+                if access.is_read() && !path.readable() {
+                    return Err(InputSchemaError::Invalid {
+                        description: "No read permission".to_string(),
+                        position: maybe_position.unwrap_or_default(),
+                        input: input.clone(),
+                    });
+                };
+                if access.is_write() && !path.writable() {
+                    return Err(InputSchemaError::Invalid {
+                        description: "No write permission".to_string(),
+                        position: maybe_position.unwrap_or_default(),
+                        input: input.clone(),
+                    });
+                };
+            }
+            if self.maybe_path_type.is_some() {
+                let path_type = self.maybe_path_type.unwrap();
+                let file_type = path
+                    .metadata()
+                    .map_err(|error| InputSchemaError::Invalid {
+                        description: format!("Could not get path metadata: {error}"),
+                        position: maybe_position.clone().unwrap_or_default(),
+                        input: input.clone(),
+                    })?
+                    .file_type();
+                if (path_type.is_file() && !file_type.is_file())
+                    || (path_type.is_directory() && !file_type.is_dir())
+                {
+                    return Err(InputSchemaError::Invalid {
+                        description: "improper file type".to_string(),
+                        position: maybe_position.unwrap_or_default(),
+                        input: input.clone(),
+                    });
+                }
             }
         }
         Ok(())

@@ -709,10 +709,11 @@ pub enum InputSchemaError {
         position: InputPosition,
         schema_type: InputSchemaType,
     },
-    #[error("{position} {description}")]
+    #[error("{position} {description} ({input})")]
     Invalid {
         description: String,
         position: InputPosition,
+        input: Input,
     },
 }
 

@@ -39,9 +39,8 @@ impl InputSchemaTypeFloat {
         maybe_position: Option<InputPosition>,
     ) -> Result<(), InputSchemaError> {
         if input.is_str() {
-            match input.as_str().parse::<f64>() {
-                Ok(float) => *input = Input::from(float),
-                _ => (),
+            if let Ok(float) = input.as_str().parse::<f64>() {
+                *input = Input::from(float)
             }
         } else if input.is_int() {
             let new_input = Input::from(*input.as_int() as f64);

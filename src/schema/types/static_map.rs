@@ -98,7 +98,7 @@ impl Display for InputSchemaTypeStaticMap {
             let (key2, schema2) = iter.next().unwrap();
             f.write_str(format!("static map with key `{key1}` and its value that should be {schema1} and another key `{key2}` and its value that should be {schema2}").as_str())
         } else if length == 0 {
-            f.write_str(format!("static map that should contain nothing").as_str())
+            f.write_str("static map that should contain nothing")
         } else {
             let mut text = format!("static map with {length} different keys;");
             self.items

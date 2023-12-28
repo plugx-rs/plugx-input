@@ -77,8 +77,9 @@ impl InputSchemaTypeIp {
             IpAddr::from_str(ip).map(|_| ())
         }
         .map_err(|error| InputSchemaError::Invalid {
-            description: format!("Invalid IP address ({error})"),
+            description: format!("{error}"),
             position: maybe_position.unwrap_or_default(),
+            input: input.clone(),
         })?;
         Ok(())
     }

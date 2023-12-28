@@ -39,14 +39,11 @@ impl InputSchemaTypeInteger {
         maybe_position: Option<InputPosition>,
     ) -> Result<(), InputSchemaError> {
         if input.is_str() {
-            match input.as_str().parse::<isize>() {
-                Ok(integer) => *input = Input::from(integer),
-                _ => (),
+            if let Ok(integer) = input.as_str().parse::<isize>() {
+                *input = Input::from(integer)
             }
-        } else if input.is_float() {
-            if input.as_float().fract() == 0.0 {
-                *input = Input::from(*input.as_float() as isize)
-            }
+        } else if input.is_float() && input.as_float().fract() == 0.0 {
+            *input = Input::from(*input.as_float() as isize)
         };
         if !input.is_int() {
             return Err(InputSchemaError::Type {
