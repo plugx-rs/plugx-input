@@ -52,13 +52,13 @@ impl Display for InputDiff {
             (Some(old_value), Some(new_value)) => {
                 format!("{position}value `{old_value}` {description} to new value `{new_value}`")
             }
-            (Some(old_value), _) => {
+            (Some(old_value), None) => {
                 format!("{position}value `{old_value}` {description}")
             }
-            (_, Some(new_value)) => {
+            (None, Some(new_value)) => {
                 format!("{position}value `{new_value}` {description}")
             }
-            _ => format!("{position}has no update"),
+            (None, None) => format!("{position}hasn't changed"),
         };
         f.write_str(text.as_str())
     }

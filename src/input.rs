@@ -111,7 +111,7 @@ impl Input {
         if let Self::Float(value) = self {
             value
         } else {
-            panic!("Expected Input to be a integer. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
+            panic!("Expected Input to be a float. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
         }
     }
 
@@ -208,10 +208,6 @@ impl Input {
             Self::List(_) => Self::list_type_name(),
             Self::Map(_) => Self::map_type_name(),
         }
-    }
-
-    pub fn empty_type_name() -> String {
-        "empty".to_string()
     }
 
     pub fn map_type_name() -> String {

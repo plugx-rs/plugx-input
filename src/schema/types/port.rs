@@ -1,4 +1,4 @@
-use crate::schema::InputSchemaTypeInteger;
+use crate::schema::{InputSchemaType, InputSchemaTypeRange};
 use crate::{
     position::InputPosition,
     schema::{default::default_port_zero, InputSchemaError},
@@ -39,9 +39,30 @@ impl InputSchemaTypePort {
         input: &mut Input,
         maybe_position: Option<InputPosition>,
     ) -> Result<(), InputSchemaError> {
-        InputSchemaTypeInteger::default()
-            .with_range(self.start..65535)
-            .validate(input, maybe_position)
+        if input.is_str() {
+            if let Ok(integer) = input.as_str().parse::<u16>() {
+                *input = Input::from(integer)
+            }
+        } else if input.is_float() && input.as_float().fract() == 0.0 {
+            *input = Input::from(*input.as_float() as u16)
+        };
+        if !input.is_int() {
+            return Err(InputSchemaError::Type {
+                position: maybe_position.unwrap_or_default(),
+                expected_type: Input::int_type_name(),
+                input_type: input.type_name(),
+            });
+        };
+        let port = input.as_int();
+        if *port > u16::MAX as isize || *port < 0 || *port < self.start() as isize {
+            return Err(InputSchemaError::Range {
+                position: maybe_position.unwrap_or_default(),
+                schema_type: InputSchemaType::new_port(),
+                expected_range: InputSchemaTypeRange::from(0..u16::MAX),
+                input: input.clone(),
+            });
+        }
+        Ok(())
     }
 }
 

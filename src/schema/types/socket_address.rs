@@ -96,6 +96,7 @@ impl InputSchemaTypeSocketAddress {
                 return Err(InputSchemaError::Invalid {
                     description: format!("Could not parse socket address: {error}"),
                     position: maybe_position.unwrap_or_default(),
+                    input: input.clone(),
                 });
             }
         };
@@ -111,6 +112,7 @@ impl InputSchemaTypeSocketAddress {
             return Err(InputSchemaError::Invalid {
                 description: error,
                 position: maybe_position.unwrap_or_default(),
+                input: input.clone(),
             });
         }
         // TODO: port

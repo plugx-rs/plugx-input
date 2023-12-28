@@ -26,6 +26,7 @@ impl InputSchemaTypeLogLevel {
         let _ = log::Level::from_str(log_level).map_err(|error| InputSchemaError::Invalid {
             description: format!("Could not parse log level name: {error}"),
             position: maybe_position.unwrap_or_default(),
+            input: input.clone(),
         })?;
         Ok(())
     }

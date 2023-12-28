@@ -41,7 +41,7 @@ impl InputSchemaTypeDynamicMap {
     }
 
     pub fn set_size<S: Into<InputSchemaTypeSize>>(&mut self, size: S) {
-        self.maybe_size_mut().replace(*&mut size.into());
+        self.maybe_size_mut().replace(size.into());
     }
 
     pub fn with_size<S: Into<InputSchemaTypeSize>>(mut self, size: S) -> Self {
