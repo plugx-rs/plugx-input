@@ -1,15 +1,15 @@
 [package]
 name = "plugx-input"
-version = "0.3.1"
-edition = "2021"
-description = "simple and flexible data-structure for configuration and state."
+version = "1.0.0"
+edition = "2024"
+description = "simple and flexible data-structure for configuration and state manipulation of plugins."
 license = "BSD-3-Clause"
 readme = "README.md"
 homepage = "https://crates.io/crates/plugx-input"
 documentation = "https://docs.rs/plugx-input"
 repository = "https://github.com/plugx-rs/plugx-input"
 categories = ["config", "data-structures", "parsing"]
-keywords = ["plugin", "config", "configuration", "data-structures"]
+keywords = ["plugin", "config", "configuration", "data-structures", "state-manipulation"]
 include = ["src/**/*.rs", "Cargo.toml", "LICENSE", "README.md", "CONTRIBUTING.md"]
 
 [dependencies]
