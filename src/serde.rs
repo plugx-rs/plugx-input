@@ -1,12 +1,12 @@
 use crate::{
-    error::{i128_to_isize, invalid_type, InputDeserializeError, EXPECTED_INPUT_TYPES},
-    position::InputPath,
     Input,
+    error::{EXPECTED_INPUT_TYPES, InputDeserializeError, i128_to_isize, invalid_type},
+    position::InputPath,
 };
 use serde::{
+    Deserializer, Serializer,
     de::{self, Deserialize, DeserializeSeed, MapAccess, SeqAccess, Visitor},
     ser::{Serialize, SerializeMap, SerializeSeq},
-    Deserializer, Serializer,
 };
 use std::{collections::HashMap, fmt};
 
@@ -206,7 +206,7 @@ impl<'de> Visitor<'de> for InputSeed {
 mod tests {
     use super::*;
     use crate::error::InputSerializeError;
-    use serde_json::{json, Value};
+    use serde_json::{Value, json};
 
     #[test]
     fn serialize_is_infallible() {
@@ -221,9 +221,11 @@ mod tests {
     #[test]
     fn rejects_null_with_clean_error() {
         let error = serde_json::from_str::<Input>("null").unwrap_err();
-        assert!(error
-            .to_string()
-            .starts_with("expected boolean, integer, float, string, list, or map, found null"));
+        assert!(
+            error
+                .to_string()
+                .starts_with("expected boolean, integer, float, string, list, or map, found null")
+        );
     }
 
     #[test]

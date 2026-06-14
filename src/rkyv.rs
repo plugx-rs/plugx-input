@@ -1,4 +1,4 @@
-use crate::{error::InputDeserializeError, position::InputPath, Input};
+use crate::{Input, error::InputDeserializeError, position::InputPath};
 use rkyv::{from_bytes, rancor, to_bytes, util::AlignedVec};
 
 impl Input {
