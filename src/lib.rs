@@ -1,19 +1,18 @@
 #![doc = include_str!("../README.md")]
 
-extern crate core;
+mod impls;
+mod input;
 
-pub mod diff;
-pub mod merge;
-pub mod position;
 #[doc(inline)]
 pub use input::Input;
-#[cfg(feature = "schema")]
-pub mod schema;
 
-pub mod ext {
-    pub extern crate anyhow;
-}
+#[cfg(any(feature = "serde", feature = "rkyv"))]
+pub mod error;
+#[cfg(any(feature = "serde", feature = "rkyv"))]
+pub mod position;
 
-mod input;
-mod input_from_impls;
-mod logging;
+#[cfg(feature = "serde")]
+pub mod serde;
+
+#[cfg(feature = "rkyv")]
+pub mod rkyv;
