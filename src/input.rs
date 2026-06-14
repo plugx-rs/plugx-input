@@ -1,21 +1,27 @@
-use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     fmt::{Debug, Display, Formatter},
 };
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[serde(
-    untagged,
-    expecting = "expecting boolean, integer, float, string, list, or map"
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(
+    feature = "rkyv",
+    derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize),
+    rkyv(derive(Debug)),
+    rkyv(serialize_bounds(
+        __S: rkyv::ser::Writer + rkyv::ser::Allocator,
+        __S::Error: rkyv::rancor::Source,
+    )),
+    rkyv(deserialize_bounds(__D::Error: rkyv::rancor::Source)),
+    rkyv(bytecheck(bounds(__C: rkyv::validation::ArchiveContext))),
 )]
 pub enum Input {
     Bool(bool),
     Int(isize),
     Float(f64),
     Str(String),
-    List(Vec<Input>),
-    Map(HashMap<String, Input>),
+    List(#[cfg_attr(feature = "rkyv", rkyv(omit_bounds))] Vec<Input>),
+    Map(#[cfg_attr(feature = "rkyv", rkyv(omit_bounds))] HashMap<String, Input>),
 }
 
 impl Input {
@@ -35,27 +41,24 @@ impl Input {
         matches!(self, Self::Bool(_))
     }
 
-    pub fn as_bool(&self) -> &bool {
-        if let Self::Bool(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a boolean. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
+    pub fn as_bool(&self) -> Option<&bool> {
+        match self {
+            Self::Bool(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn into_bool(self) -> bool {
-        if let Self::Bool(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a boolean. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
+    pub fn into_bool(self) -> Option<bool> {
+        match self {
+            Self::Bool(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn bool_mut(&mut self) -> &mut bool {
-        if let Self::Bool(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a boolean. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
+    pub fn bool_mut(&mut self) -> Option<&mut bool> {
+        match self {
+            Self::Bool(value) => Some(value),
+            _ => None,
         }
     }
 
@@ -63,27 +66,24 @@ impl Input {
         matches!(self, Self::Int(_))
     }
 
-    pub fn as_int(&self) -> &isize {
-        if let Self::Int(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a integer. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
+    pub fn as_int(&self) -> Option<&isize> {
+        match self {
+            Self::Int(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn into_int(self) -> isize {
-        if let Self::Int(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a integer. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
+    pub fn into_int(self) -> Option<isize> {
+        match self {
+            Self::Int(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn int_mut(&mut self) -> &mut isize {
-        if let Self::Int(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a integer. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
+    pub fn int_mut(&mut self) -> Option<&mut isize> {
+        match self {
+            Self::Int(value) => Some(value),
+            _ => None,
         }
     }
 
@@ -91,27 +91,24 @@ impl Input {
         matches!(self, Self::Float(_))
     }
 
-    pub fn as_float(&self) -> &f64 {
-        if let Self::Float(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a float. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
+    pub fn as_float(&self) -> Option<&f64> {
+        match self {
+            Self::Float(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn into_float(self) -> f64 {
-        if let Self::Float(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a float. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
+    pub fn into_float(self) -> Option<f64> {
+        match self {
+            Self::Float(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn float_mut(&mut self) -> &mut f64 {
-        if let Self::Float(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a float. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
+    pub fn float_mut(&mut self) -> Option<&mut f64> {
+        match self {
+            Self::Float(value) => Some(value),
+            _ => None,
         }
     }
 
@@ -119,27 +116,24 @@ impl Input {
         matches!(self, Self::Str(_))
     }
 
-    pub fn as_str(&self) -> &String {
-        if let Self::Str(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a string. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
+    pub fn as_str(&self) -> Option<&String> {
+        match self {
+            Self::Str(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn into_str(self) -> String {
-        if let Self::Str(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a string. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
+    pub fn into_str(self) -> Option<String> {
+        match self {
+            Self::Str(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn str_mut(&mut self) -> &mut String {
-        if let Self::Str(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a string. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
+    pub fn str_mut(&mut self) -> Option<&mut String> {
+        match self {
+            Self::Str(value) => Some(value),
+            _ => None,
         }
     }
 
@@ -147,27 +141,24 @@ impl Input {
         matches!(self, Self::List(_))
     }
 
-    pub fn as_list(&self) -> &Vec<Input> {
-        if let Self::List(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a list. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
+    pub fn as_list(&self) -> Option<&Vec<Input>> {
+        match self {
+            Self::List(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn into_list(self) -> Vec<Input> {
-        if let Self::List(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a list. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
+    pub fn into_list(self) -> Option<Vec<Input>> {
+        match self {
+            Self::List(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn list_mut(&mut self) -> &mut Vec<Input> {
-        if let Self::List(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a list. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
+    pub fn list_mut(&mut self) -> Option<&mut Vec<Input>> {
+        match self {
+            Self::List(value) => Some(value),
+            _ => None,
         }
     }
 
@@ -175,27 +166,24 @@ impl Input {
         matches!(self, Self::Map(_))
     }
 
-    pub fn as_map(&self) -> &HashMap<String, Input> {
-        if let Self::Map(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a map. You should call `.is_<TYPE>()` before calling any `as_<TYPE>()` method")
+    pub fn as_map(&self) -> Option<&HashMap<String, Input>> {
+        match self {
+            Self::Map(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn into_map(self) -> HashMap<String, Input> {
-        if let Self::Map(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a map. You should call `.is_<TYPE>()` before calling any `into_<TYPE>()` method")
+    pub fn into_map(self) -> Option<HashMap<String, Input>> {
+        match self {
+            Self::Map(value) => Some(value),
+            _ => None,
         }
     }
 
-    pub fn map_mut(&mut self) -> &mut HashMap<String, Input> {
-        if let Self::Map(value) = self {
-            value
-        } else {
-            panic!("Expected Input to be a map. You should call `.is_<TYPE>()` before calling any `<TYPE>_mut()` method")
+    pub fn map_mut(&mut self) -> Option<&mut HashMap<String, Input>> {
+        match self {
+            Self::Map(value) => Some(value),
+            _ => None,
         }
     }
 
@@ -265,92 +253,5 @@ impl Display for Input {
                 write!(f, "}}")
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::collections::HashMap;
-
-    #[test]
-    fn serde() {
-        let de_result = serde_json::from_str::<Input>("true");
-        assert!(de_result.is_ok());
-        assert_eq!(Input::Bool(true), de_result.unwrap());
-
-        let de_result = serde_json::from_str::<Input>("0");
-        assert!(de_result.is_ok());
-        assert_eq!(Input::Int(0), de_result.unwrap());
-        let de_result = serde_json::from_str::<Input>("1234567890");
-        assert!(de_result.is_ok());
-        assert_eq!(Input::Int(1234567890), de_result.unwrap());
-        let de_result = serde_json::from_str::<Input>("-1234567890");
-        assert!(de_result.is_ok());
-        assert_eq!(Input::Int(-1234567890), de_result.unwrap());
-
-        let de_result = serde_json::from_str::<Input>("0.0");
-        assert!(de_result.is_ok());
-        assert_eq!(Input::Float(0.0), de_result.unwrap());
-        let de_result = serde_json::from_str::<Input>("1234567890.0");
-        assert!(de_result.is_ok());
-        assert_eq!(Input::Float(1234567890.0), de_result.unwrap());
-        let de_result = serde_json::from_str::<Input>("-1234567890.0");
-        assert!(de_result.is_ok());
-        assert_eq!(Input::Float(-1234567890.0), de_result.unwrap());
-
-        let de_result = serde_json::from_str::<Input>("\"hello\"");
-        assert!(de_result.is_ok());
-        assert_eq!(Input::Str("hello".to_string()), de_result.unwrap());
-        let de_result = serde_json::from_str::<Input>("\"false\"");
-        assert!(de_result.is_ok());
-        assert_eq!(Input::Str("false".to_string()), de_result.unwrap());
-        let de_result = serde_json::from_str::<Input>("\"1\"");
-        assert!(de_result.is_ok());
-        assert_eq!(Input::Str("1".to_string()), de_result.unwrap());
-        let de_result = serde_json::from_str::<Input>("\"3.14\"");
-        assert!(de_result.is_ok());
-        assert_eq!(Input::Str("3.14".to_string()), de_result.unwrap());
-
-        let de_result = serde_json::from_str::<Input>("[false, 0, 0.0, \"hello\", [[]], {}]");
-        assert!(de_result.is_ok());
-        let list = de_result.unwrap();
-        assert!(list.is_list());
-        assert_eq!(
-            Input::List(
-                [
-                    Input::from(false),
-                    Input::from(0),
-                    Input::from(0.0),
-                    Input::from("hello".to_string()),
-                    Input::from([Input::List([].to_vec())].to_vec()),
-                    Input::from(Input::new_map())
-                ]
-                .to_vec()
-            ),
-            list
-        );
-
-        let de_result = serde_json::from_str::<Input>(
-            "{\"foo\": 0, \"bar\": 0.0, \"baz\": false, \"qux\": {\"hello\": \"world\"}}",
-        );
-        assert!(de_result.is_ok());
-        let map = de_result.unwrap();
-        assert!(map.is_map());
-        assert_eq!(
-            Input::Map(HashMap::from([
-                ("foo".to_string(), Input::Int(0)),
-                ("bar".to_string(), Input::Float(0.0)),
-                ("baz".to_string(), Input::Bool(false)),
-                (
-                    "qux".to_string(),
-                    Input::Map(HashMap::from([(
-                        "hello".to_string(),
-                        Input::Str("world".to_string())
-                    )]))
-                ),
-            ])),
-            map
-        );
     }
 }
