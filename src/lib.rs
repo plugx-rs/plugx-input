@@ -12,7 +12,7 @@ pub mod error;
 pub mod position;
 
 #[cfg(feature = "serde")]
-pub mod serde;
+mod serde;
 
 #[cfg(feature = "rkyv")]
-pub mod rkyv;
+mod rkyv;
