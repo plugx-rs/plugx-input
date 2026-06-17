@@ -5,6 +5,20 @@ A simple and flexible data-structure for configuration and state manipulation of
 
 <br/>
 
+## Features
+
+| Feature | Enables |
+|---------|---------|
+| *(none)* | Core [`Input`] type, `From` conversions, [`Display`] |
+| `serde` | [`Serialize`]/[`Deserialize`], infallible [`Input::serialize`] |
+| `rkyv` | Binary archive via [`Input::to_rkyv_bytes`] / [`Input::from_rkyv_bytes`] |
+
+`serde` or `rkyv` also exposes [`error`] and [`position`] for structured deserialize errors.
+
+```toml
+plugx-input = { version = "1.1", features = ["serde"] }
+```
+
 ## Demo
 ```rust
 use plugx_input::Input;

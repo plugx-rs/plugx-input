@@ -1,3 +1,5 @@
+//! [`From`] and [`FromIterator`] conversions into [`Input`].
+
 use crate::Input;
 use std::collections::HashMap;
 

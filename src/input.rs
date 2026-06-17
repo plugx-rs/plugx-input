@@ -3,6 +3,30 @@ use std::{
     fmt::{Debug, Display, Formatter},
 };
 
+/// Kind of value stored in [`Input`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum InputType {
+    Bool,
+    Int,
+    Str,
+    Float,
+    Map,
+    List,
+}
+
+impl Display for InputType {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Bool => "boolean",
+            Self::Int => "integer",
+            Self::Str => "string",
+            Self::Float => "float",
+            Self::Map => "map",
+            Self::List => "list",
+        })
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(
     feature = "rkyv",
@@ -15,6 +39,17 @@ use std::{
     rkyv(deserialize_bounds(__D::Error: rkyv::rancor::Source)),
     rkyv(bytecheck(bounds(__C: rkyv::validation::ArchiveContext))),
 )]
+/// Dynamically typed value for plugin configuration and runtime state.
+///
+/// Six variants: boolean, integer ([`isize`]), float ([`f64`]), string, list, and map.
+/// Build values with [`From`] (scalars, slices, [`Vec`], [`HashMap`], etc.); inspect them
+/// with `is_*`, `as_*`, `into_*`, and `*_mut` accessors. Use [`Input::type_name`] for the
+/// active [`InputType`].
+///
+/// # Cargo features
+///
+/// - **`serde`**: [`Serialize`], [`Deserialize`], and [`Input::serialize`].
+/// - **`rkyv`**: archive derives plus [`Input::to_rkyv_bytes`] and [`Input::from_rkyv_bytes`].
 pub enum Input {
     Bool(bool),
     Int(isize),
@@ -25,14 +60,17 @@ pub enum Input {
 }
 
 impl Input {
+    /// Empty map (`Input::Map`).
     pub fn new_map() -> Self {
         Self::Map(HashMap::new())
     }
 
+    /// Empty list (`Input::List`).
     pub fn new_list() -> Self {
         Self::List(Vec::new())
     }
 
+    /// Empty string (`Input::Str`).
     pub fn new_str() -> Self {
         Self::Str(String::new())
     }
@@ -187,39 +225,16 @@ impl Input {
         }
     }
 
-    pub fn type_name(&self) -> String {
+    /// Kind of the active variant.
+    pub fn type_name(&self) -> InputType {
         match self {
-            Self::Bool(_) => Self::bool_type_name(),
-            Self::Int(_) => Self::int_type_name(),
-            Self::Float(_) => Self::float_type_name(),
-            Self::Str(_) => Self::str_type_name(),
-            Self::List(_) => Self::list_type_name(),
-            Self::Map(_) => Self::map_type_name(),
+            Self::Bool(_) => InputType::Bool,
+            Self::Int(_) => InputType::Int,
+            Self::Float(_) => InputType::Float,
+            Self::Str(_) => InputType::Str,
+            Self::List(_) => InputType::List,
+            Self::Map(_) => InputType::Map,
         }
-    }
-
-    pub fn map_type_name() -> String {
-        "map".to_string()
-    }
-
-    pub fn list_type_name() -> String {
-        "list".to_string()
-    }
-
-    pub fn str_type_name() -> String {
-        "string".to_string()
-    }
-
-    pub fn int_type_name() -> String {
-        "integer".to_string()
-    }
-
-    pub fn float_type_name() -> String {
-        "float".to_string()
-    }
-
-    pub fn bool_type_name() -> String {
-        "boolean".to_string()
     }
 }
 

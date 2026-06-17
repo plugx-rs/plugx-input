@@ -1,5 +1,11 @@
+//! Source locations for deserialization errors.
+//!
+//! Built incrementally while decoding nested maps and lists. Display format:
+//! `filename:line:[key][index]…` (each part optional).
+
 use std::fmt;
 
+/// Path to the value that failed deserialization.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct InputPath {
     maybe_filename: Option<String>,
@@ -7,13 +13,17 @@ pub struct InputPath {
     segment_list: Vec<PathSegment>,
 }
 
+/// One step in an [`InputPath`]: map key or list index.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PathSegment {
+    /// Map key segment, rendered as `[key]`.
     Key(String),
+    /// List index segment, rendered as `[index]`.
     Index(usize),
 }
 
 impl InputPath {
+    /// Empty path (no filename, line, or segments).
     pub fn root() -> Self {
         Self {
             maybe_filename: None,
@@ -22,26 +32,31 @@ impl InputPath {
         }
     }
 
+    /// Attach a source filename (shown first in display output).
     pub fn with_filename(mut self, filename: impl Into<String>) -> Self {
         self.maybe_filename = Some(filename.into());
         self
     }
 
+    /// Attach a 1-based line number (after filename, before segments).
     pub fn with_line_number(mut self, line_number: usize) -> Self {
         self.maybe_line_number = Some(line_number);
         self
     }
 
+    /// Append a map-key segment.
     pub fn with_key(mut self, key: impl Into<String>) -> Self {
         self.segment_list.push(PathSegment::Key(key.into()));
         self
     }
 
+    /// Append a list-index segment.
     pub fn with_index(mut self, index: usize) -> Self {
         self.segment_list.push(PathSegment::Index(index));
         self
     }
 
+    /// Whether filename, line number, and segments are all unset.
     pub fn is_empty(&self) -> bool {
         self.maybe_filename.is_none()
             && self.maybe_line_number.is_none()

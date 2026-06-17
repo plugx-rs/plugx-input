@@ -1,16 +1,18 @@
-use crate::{Input, error::InputDeserializeError, position::InputPath};
+//! [`rkyv`] archive support for [`Input`] (`rkyv` Cargo feature).
+
+use crate::{Input, error::DeserializeError, position::InputPath};
 use rkyv::{from_bytes, rancor, to_bytes, util::AlignedVec};
 
 impl Input {
-    /// Serializes `self` to rkyv bytes. This cannot fail.
+    /// Encode to rkyv bytes (infallible).
     pub fn to_rkyv_bytes(&self) -> AlignedVec {
         to_bytes::<rancor::Error>(self).expect("Input rkyv serialization cannot fail")
     }
 
-    /// Deserializes `self` from rkyv bytes with structured errors.
-    pub fn from_rkyv_bytes(bytes: &[u8]) -> Result<Self, InputDeserializeError> {
+    /// Decode from rkyv bytes; failures become [`DeserializeError::InvalidArchive`].
+    pub fn from_rkyv_bytes(bytes: &[u8]) -> Result<Self, DeserializeError> {
         from_bytes::<Input, rancor::Error>(bytes).map_err(|error| {
-            InputDeserializeError::InvalidArchive {
+            DeserializeError::InvalidArchive {
                 path: InputPath::root(),
                 message: error.to_string(),
             }
@@ -76,9 +78,6 @@ mod tests {
     #[test]
     fn rejects_invalid_bytes() {
         let error = Input::from_rkyv_bytes(&[0u8, 1, 2, 3]).unwrap_err();
-        assert!(matches!(
-            error,
-            InputDeserializeError::InvalidArchive { .. }
-        ));
+        assert!(matches!(error, DeserializeError::InvalidArchive { .. }));
     }
 }

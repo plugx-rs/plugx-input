@@ -10,29 +10,22 @@ on:
     branches:
       - "master"
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  build:
-    name: Test
+  check:
     runs-on: ubuntu-latest
     steps:
-      - name: Installing Rust toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          override: true
           components: rustfmt, clippy
-
-      - name: Checking out sources
-        uses: actions/checkout@v1
       - name: Check style
-        run: cargo fmt --check
+        run: make check-style
       - name: Build
-        run: cargo build
-      - name: Build (serde)
-        run: cargo build --features=serde
-      - name: Build (rkyv)
-        run: cargo build --features=rkyv
-      - name: Test current source
-        run: cargo test --features serde,rkyv
+        run: make build
+      - name: Test
+        run: make test
       - name: Clippy
-        run: cargo clippy --features serde,rkyv --no-deps
+        run: make clippy
