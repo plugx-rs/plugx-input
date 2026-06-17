@@ -12,6 +12,9 @@ categories = ["config", "data-structures", "parsing"]
 keywords = ["plugin", "config", "configuration", "data-structures", "state-manipulation"]
 include = ["src/**/*.rs", "Cargo.toml", "LICENSE", "README.md", "CONTRIBUTING.md"]
 
+[package.metadata.docs.rs]
+all-features = true
+
 [dependencies]
 thiserror = "2.0.18"
 serde = {version = "1.0.193", features = ["derive"], optional = true}
