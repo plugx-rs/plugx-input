@@ -1,6 +1,6 @@
 [package]
 name = "plugx-input"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 description = "simple and flexible data-structure for configuration and state manipulation of plugins."
 license = "BSD-3-Clause"
