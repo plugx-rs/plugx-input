@@ -1,6 +1,11 @@
+//! [`serde`] support for [`Input`] (`serde` Cargo feature).
+//!
+//! Implements [`Serialize`] and [`Deserialize`] with path-aware errors via
+//! [`crate::error`] and [`crate::position`].
+
 use crate::{
     Input,
-    error::{EXPECTED_INPUT_TYPES, InputDeserializeError, i128_to_isize, invalid_type},
+    error::{DeserializeError, EXPECTED_INPUT_TYPES, i128_to_isize, invalid_type},
     position::InputPath,
 };
 use serde::{
@@ -11,7 +16,7 @@ use serde::{
 use std::{collections::HashMap, fmt};
 
 impl Input {
-    /// Serializes `self`. This cannot fail for any supported [`Serializer`].
+    /// Serialize with any [`Serializer`]; infallible for supported output types.
     pub fn serialize<S: Serializer>(&self, serializer: S) -> S::Ok {
         serialize_infallible(self, serializer)
     }
@@ -96,7 +101,7 @@ impl InputSeed {
 
     fn integer_out_of_range<E: de::Error>(&self, value: i128) -> E {
         E::custom(
-            InputDeserializeError::IntegerOutOfRange {
+            DeserializeError::IntegerOutOfRange {
                 path: self.path.clone(),
                 value,
             }
@@ -106,8 +111,8 @@ impl InputSeed {
 
     fn int_from_i128<E: de::Error>(&self, value: i128) -> Result<Input, E> {
         match i128_to_isize(value) {
-            Ok(value) => Ok(Input::Int(value)),
-            Err(()) => Err(self.integer_out_of_range(value)),
+            Some(value) => Ok(Input::Int(value)),
+            None => Err(self.integer_out_of_range(value)),
         }
     }
 }
